@@ -267,7 +267,10 @@ export function useSchedule(storeId: string) {
     const nextYear = patch.year ?? s.year;
     const nextMonth = patch.month ?? s.month;
     if (nextYear === s.year && nextMonth === s.month) {
-      setSchedule((cur) => ({ ...cur, ...patch }));
+      const state = { ...latest.current, schedule: { ...s, ...patch } };
+      latest.current = state;
+      saveState(storeId, state);
+      setSchedule(state.schedule);
       return;
     }
     // Monatswechsel: aktuellen Plan ablegen, gespeicherten Plan des Zielmonats
@@ -278,7 +281,7 @@ export function useSchedule(storeId: string) {
     setSchedule(schedulePatched);
     setOriginalShifts(next.originalShifts);
     setGenError(null);
-  }, []);
+  }, [storeId]);
 
   /** Alle Monate mit gespeichertem Plan (inkl. des aktuell geöffneten). */
   const savedMonths = useMemo(() => listSavedMonths(schedule), [schedule]);
