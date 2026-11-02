@@ -644,7 +644,7 @@ function GroupWindowRow({
           : n === 0 ? "bg-amber-50 text-amber-800" : "";
         return (
           <td key={d} className={`border-t border-l border-slate-200 px-1 py-1 text-center ${tone}`}>
-            {n ?? "–"}
+            {n === 0 ? "Chủ" : n ?? "–"}
           </td>
         );
       })}
