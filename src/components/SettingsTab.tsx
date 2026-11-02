@@ -117,7 +117,7 @@ function BlockRow({
             onClick={() =>
               onChange([
                 ...blocks,
-                { startMinutes: blocks[blocks.length - 1]?.endMinutes ?? 0, endMinutes: 22 * 60 },
+                { startMinutes: blocks[blocks.length - 1]?.endMinutes ?? 480, endMinutes: Math.min(1440, (blocks[blocks.length - 1]?.endMinutes ?? 480) + 120) },
               ])
             }
             className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
@@ -150,8 +150,8 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
   );
   const [ovDate, setOvDate] = useState<string>("");
   const [ovMode, setOvMode] = useState<"closed" | "custom">("closed");
-  const [ovStart, setOvStart] = useState("11:30");
-  const [ovEnd, setOvEnd] = useState("15:00");
+  const [ovStart, setOvStart] = useState("08:00");
+  const [ovEnd, setOvEnd] = useState("20:00");
   const [ovNote, setOvNote] = useState("");
 
   const effectiveOvDate = ovDate || monthDates[0];
@@ -161,6 +161,7 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
     if (ovMode === "closed") {
       upsertOverride({ date: effectiveOvDate, closed: true, note: ovNote.trim() || undefined });
     } else {
+      if (!ovStart || !ovEnd || ovEnd <= ovStart) return;
       try {
         upsertOverride({
           date: effectiveOvDate,
@@ -190,6 +191,7 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
   function setWeekdayClosed(key: WeekdayKey, closed: boolean) {
     const workHours: WorkHoursConfig = {
       ...schedule.workHours,
+      perWeekday: !closed && schedule.workHours.perWeekday[key].length === 0 ? { ...schedule.workHours.perWeekday, [key]: [{ startMinutes: 480, endMinutes: 1200 }] } : schedule.workHours.perWeekday,
       closedWeekdays: { ...schedule.workHours.closedWeekdays, [key]: closed },
     };
     updateMeta({ workHours });
@@ -295,16 +297,18 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
           <div className="my-2 border-t border-slate-200" />
           <BlockRow
             label="Ngày lễ"
-            hint="Tự áp dụng cho ngày lễ Baden-Württemberg"
+            hint="Tự áp dụng cho ngày lễ Hamburg"
             blocks={schedule.workHours.holiday}
             onChange={setHolidayWindow}
+            closed={schedule.workHours.holiday.length === 0}
+            onToggleClosed={(closed) => setHolidayWindow(closed ? [] : [{ startMinutes: 480, endMinutes: 1200 }])}
           />
         </div>
 
         {holidaysThisMonth.length > 0 && (
           <div className="mt-3 rounded bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
             <div className="font-medium mb-1">
-              Ngày lễ Baden-Württemberg trong {MONTH_NAMES_VI[schedule.month - 1]} {schedule.year}:
+              Ngày lễ Hamburg trong {MONTH_NAMES_VI[schedule.month - 1]} {schedule.year}:
             </div>
             <ul className="space-y-1">
               {holidaysThisMonth.map(([iso, name]) => {

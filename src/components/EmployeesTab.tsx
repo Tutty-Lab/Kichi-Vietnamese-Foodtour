@@ -16,8 +16,8 @@ const inputClass =
 
 const STATION_VI: Record<Station, string> = { SERVICE: "Kasse / Phụ bếp", KITCHEN: "Bếp", BOTH: "Cả 2 (Kasse / Phụ bếp + Bếp)" };
 
-const FIXED_START_DEFAULT = "06:30";
-const FIXED_END_DEFAULT = "14:30";
+const FIXED_START_DEFAULT = "08:00";
+const FIXED_END_DEFAULT = "20:00";
 
 const WEEKDAY_ORDER: WeekdayKey[] = [
   "monday",
@@ -81,7 +81,7 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
     station: emp?.station ?? "SERVICE",
     hours: emp ? hoursText(Math.round(((monthlyMinutes ?? emp.targetMinutes) / 60) * 100) / 100) : "169",
     monthlySalary: emp?.monthlySalary != null ? hoursText(emp.monthlySalary) : "",
-    hourlyRate: hoursText(emp?.hourlyRate ?? DEFAULT_HOURLY_RATE),
+    hourlyRate: emp ? (emp.hourlyRate == null ? "" : hoursText(emp.hourlyRate)) : hoursText(DEFAULT_HOURLY_RATE),
     maxDays: emp?.maxDaysPerWeek ? String(Math.min(6, emp.maxDaysPerWeek)) : "",
     daysOff: available && available.length > 0 ? WEEKDAY_ORDER.filter((day) => !available.includes(day)) : [],
     fixed: !!emp?.fixedShift,
@@ -89,8 +89,8 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
     fixedStart: emp?.fixedShift ? minutesToTime(emp.fixedShift.startMinutes) : FIXED_START_DEFAULT,
     fixedEnd: emp?.fixedShift ? minutesToTime(emp.fixedShift.endMinutes) : FIXED_END_DEFAULT,
     limited: !!emp?.shiftWindow,
-    windowStart: minutesToTime(emp?.shiftWindow?.startMinutes ?? 660),
-    windowEnd: minutesToTime(emp?.shiftWindow?.endMinutes ?? 1290),
+    windowStart: minutesToTime(emp?.shiftWindow?.startMinutes ?? 480),
+    windowEnd: minutesToTime(emp?.shiftWindow?.endMinutes ?? 1200),
     holidayDuty: emp?.requiredOnHolidays ?? false,
     shiftMin: emp?.shiftHours ? hoursText(emp.shiftHours.min) : "",
     shiftMax: emp?.shiftHours ? hoursText(emp.shiftHours.max) : "",
@@ -165,7 +165,7 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
       d.fixed && fixedEnd > fixedStart
         ? { startMinutes: fixedStart, endMinutes: fixedEnd }
         : undefined,
-    shiftWindow: d.limited ? { startMinutes: safeMinutes(d.windowStart,"11:00"), endMinutes: safeMinutes(d.windowEnd,"21:30") } : undefined,
+    shiftWindow: d.limited ? { startMinutes: safeMinutes(d.windowStart,"08:00"), endMinutes: safeMinutes(d.windowEnd,"20:00") } : undefined,
     availableWeekdays: d.daysOff.length === 0 || available.length === 0 ? undefined : available,
     maxDaysPerWeek: d.maxDays === "" || tage < 1 ? undefined : Math.min(6, Math.round(tage)),
     requiredOnHolidays: d.holidayDuty ? true : undefined,
@@ -559,6 +559,9 @@ function EmployeeSheet({
   const toggle = (list: readonly WeekdayKey[], day: WeekdayKey) =>
     list.includes(day) ? list.filter((x) => x !== day) : [...list, day];
 
+  const allDaysOff = d.daysOff.length === 7;
+  const preferencesBad = d.windows.some(w => w.days.length === 0 || !w.start || !w.end || w.end <= w.start);
+  const periodBad = Boolean(d.startDate && d.endDate && d.endDate < d.startDate);
   const hoursBad = !d.hours.trim() || !Number.isFinite(parseHours(d.hours)) || parseHours(d.hours)<0;
   const windowBad = d.limited && (!d.windowStart || !d.windowEnd || d.windowEnd <= d.windowStart);
   const shiftMinH = parseHours(d.shiftMin);
@@ -578,6 +581,7 @@ function EmployeeSheet({
         className="flex w-full sm:max-w-md max-h-[94dvh] flex-col rounded-t-2xl sm:rounded-lg bg-white shadow-xl border border-slate-200"
         onClick={(e) => e.stopPropagation()}
       >
+        {(allDaysOff || preferencesBad || periodBad) && <p role="alert" className="p-3 text-sm text-rose-700">{allDaysOff ? "Cần để ít nhất một ngày được làm; dùng khoảng nghỉ phép để nghỉ toàn bộ một giai đoạn." : preferencesBad ? "Khung ưu tiên cần chọn ngày, giờ kết thúc sau giờ bắt đầu." : "Ngày nghỉ việc phải từ ngày bắt đầu trở đi."}</p>}
         <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
           <h3 className="font-semibold text-slate-900">{employee ? "Sửa nhân viên" : "Thêm nhân viên"}</h3>
           <button
@@ -958,7 +962,7 @@ function EmployeeSheet({
               </button>
               <button
                 onClick={() => onSave(draftToEmployee(d), d.partners)}
-                disabled={d.name.trim().length === 0 || hoursBad || windowBad || fixedBad || d.unavailableRanges.some(range => Boolean(range.startDate || range.endDate) && (!range.startDate || !range.endDate || range.startDate > range.endDate))}
+                disabled={d.name.trim().length === 0 || hoursBad || windowBad || fixedBad || shiftRangeOff || allDaysOff || preferencesBad || periodBad || d.unavailableRanges.some(range => Boolean(range.startDate || range.endDate) && (!range.startDate || !range.endDate || range.startDate > range.endDate))}
                 className="rounded-lg bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
               >
                 Lưu

@@ -349,22 +349,22 @@ export function useSchedule(storeId: string) {
       id: newEmployeeId(),
       name: data.name.trim() || "Nhân viên mới",
     };
-    setSchedule((s) => {
-      if (s.lockedAt) return s;
-      return { ...s, employees: [...s.employees, emp] };
-    });
+    const current = latest.current;
+    const state = { ...current, schedule: { ...current.schedule, employees: [...current.schedule.employees, emp] } };
+    latest.current = state;
+    saveState(storeId, state);
+    setSchedule(state.schedule);
     return emp.id;
-  }, []);
+  }, [storeId]);
 
   const updateEmployee = useCallback((id: string, patch: Partial<Employee>) => {
-    setSchedule((s) => {
-      if (s.lockedAt) return s; // Monat ausgegeben und gesperrt
-      return {
-        ...s,
-        employees: s.employees.map((e) => (e.id === id ? { ...e, ...patch } : e)),
-      };
-    });
-  }, []);
+    const current = latest.current;
+    if (current.schedule.lockedAt) return;
+    const next = { ...current.schedule, employees: current.schedule.employees.map((e) => (e.id === id ? { ...e, ...patch } : e)) };
+    latest.current = { ...current, schedule: next };
+    setSchedule(next);
+    saveState(storeId, { ...current, schedule: next });
+  }, [storeId]);
 
   const removeEmployee = useCallback((id: string) => {
     setSchedule((s) => {
