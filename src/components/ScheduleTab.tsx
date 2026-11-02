@@ -447,7 +447,6 @@ export function ScheduleTab({
                 }}
               />
               <SummaryRow label="Ca sáng" dates={gridDates} value={(d) => String(dayStats.get(d)!.early)} />
-              <SummaryRow label="Ca tối" dates={gridDates} value={(d) => String(dayStats.get(d)!.late)} />
               {schedule.shifts.length > 0 && staffingRows.map((rule) => (
                 <CoverageRow
                   key={rule.label}
@@ -599,12 +598,11 @@ function CoverageRow({
 // Khung giờ cho các dòng „ít nhất" Bếp/Kasse / Phụ bếp – theo giờ Lemontaste
 // (11:00–21:30; đông 12–14 và 18–20). Nhãn ngắn, đầy đủ ở tooltip.
 const GROUP_RANGES = [
-  ["open", "11–12", "11:00 – 12:00", 11 * 60, 12 * 60],
+  ["open", "8–12", "08:00 – 12:00", 8 * 60, 12 * 60],
   ["noon", "12–14", "12:00 – 14:00 (giờ đông)", 12 * 60, 14 * 60],
   ["afternoon", "14–17", "14:00 – 17:00 (ít khách 15–17)", 14 * 60, 17 * 60],
   ["preparation", "17–18", "17:00 – 18:00 (chuẩn bị giờ đông)", 17 * 60, 18 * 60],
   ["evening", "18–20", "18:00 – 20:00 (giờ đông)", 18 * 60, 20 * 60],
-  ["evening-end", "20–21½", "20:00 – đóng cửa 21:30", 20 * 60, 21 * 60 + 30],
 ] as const;
 const GROUP_WINDOWS = (["KITCHEN", "SERVICE"] as const).flatMap((group) =>
   GROUP_RANGES.map(([key, range, title, from, to]) => ({

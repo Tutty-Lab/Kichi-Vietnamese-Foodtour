@@ -16,7 +16,7 @@ export function kichiEmployees(): Employee[] {
     restaurantOwner(),
   ];
 }
-export const restaurantOwner = (): Employee => ({ id: "kc-owner", name: "Chủ quán", employmentType: "VOLLZEIT", station: "BOTH", targetMinutes: 0, ownerSupport: true });
+export const restaurantOwner = (): Employee => ({ id: "kc-owner", name: "Chủ", employmentType: "VOLLZEIT", station: "BOTH", targetMinutes: 0, ownerSupport: true });
 export const LEMONTASTE_PATCHES: Record<string, Partial<Employee>> = {};
 export const lemontasteEmployees = kichiEmployees;
 export const DINH_BIEN_SHIFT = { startMinutes: 1080, endMinutes: 1290 };

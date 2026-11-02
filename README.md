@@ -2,7 +2,7 @@
 
 App lịch làm việc & Stundenzettel. Source: Lemontaste-Restaurant. Repo độc lập.
 
-Beim Strohhause 8, 20097 Hamburg. Mở 10–20h, nghỉ Chủ nhật và ngày lễ Hamburg.
+Beim Strohhause 8, 20097 Hamburg. Mở 8–20h, nghỉ Chủ nhật và ngày lễ Hamburg.
 Trưa 12–14h tối thiểu 2 người, tính cả chủ; cao điểm tối 18–20h. Chủ hỗ trợ cả ngày.
 Xuân Trang và Công Thành: Kasse/phụ bếp. Người còn lại: Koch/Küchenhilfe. Không có bồi riêng.
 
