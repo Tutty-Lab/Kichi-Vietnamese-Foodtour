@@ -26,7 +26,7 @@ export type StoreConfig = {
   staffingRules: readonly StaffingRule[];
 };
 
-const open = { startMinutes: 480, endMinutes: 1200 };
+const open = { startMinutes: 600, endMinutes: 1200 };
 const kichiHours: WorkHoursConfig = {
   perWeekday: { monday: [open], tuesday: [open], wednesday: [open], thursday: [open], friday: [open], saturday: [open], sunday: [] },
   holiday: [],
@@ -43,13 +43,13 @@ export const STORES: StoreConfig[] = [{
   address: "Beim Strohhause 8, 20097 Hamburg", sampleEmployees: kichiEmployees,
   workHours: kichiHours, staffingRules: rules,
   demandProfile: [
-    { startMinutes: 480, endMinutes: 720, level: 0.7, label: "Chuẩn bị" },
+    { startMinutes: 600, endMinutes: 720, level: 0.7, label: "Chuẩn bị" },
     { startMinutes: 720, endMinutes: 840, level: 2, label: "Cao điểm trưa" },
     { startMinutes: 840, endMinutes: 1080, level: 0.7, label: "Ngoài cao điểm" },
     { startMinutes: 1080, endMinutes: 1200, level: 1.6, label: "Cao điểm tối" },
   ],
   dayWeights: { monday: 1.2, tuesday: 1.2, wednesday: 1.2, thursday: 1.2, friday: 1.2, saturday: 1, sunday: 0 },
-  notes: "Mở 8–20h, nghỉ Chủ nhật và ngày lễ Hamburg. Trưa 12–14h tối thiểu 2 người (tính cả chủ). Cao điểm tối 18–20h. Chủ hỗ trợ cả ngày. Không có bồi riêng; Kasse/phụ bếp dùng nhãn Kasse / Phụ bếp. Lương giờ 13,90 € tạm tính; cần xác nhận giờ hợp đồng.",
+  notes: "Mở 10–20h, nghỉ Chủ nhật và ngày lễ Hamburg. Trưa 12–14h tối thiểu 2 người (tính cả chủ). Cao điểm tối 18–20h. Chủ hỗ trợ cả ngày. Không có bồi riêng; Kasse/phụ bếp dùng nhãn Kasse / Phụ bếp. Lương giờ 13,90 € tạm tính; cần xác nhận giờ hợp đồng.",
 }];
 
 export const DEFAULT_STORE_ID = STORES[0].id;

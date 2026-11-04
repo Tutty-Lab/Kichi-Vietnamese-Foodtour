@@ -117,7 +117,7 @@ function BlockRow({
             onClick={() =>
               onChange([
                 ...blocks,
-                { startMinutes: blocks[blocks.length - 1]?.endMinutes ?? 480, endMinutes: Math.min(1440, (blocks[blocks.length - 1]?.endMinutes ?? 480) + 120) },
+                { startMinutes: blocks[blocks.length - 1]?.endMinutes ?? 600, endMinutes: Math.min(1440, (blocks[blocks.length - 1]?.endMinutes ?? 600) + 120) },
               ])
             }
             className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
@@ -150,7 +150,7 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
   );
   const [ovDate, setOvDate] = useState<string>("");
   const [ovMode, setOvMode] = useState<"closed" | "custom">("closed");
-  const [ovStart, setOvStart] = useState("08:00");
+  const [ovStart, setOvStart] = useState("10:00");
   const [ovEnd, setOvEnd] = useState("20:00");
   const [ovNote, setOvNote] = useState("");
 
@@ -191,7 +191,7 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
   function setWeekdayClosed(key: WeekdayKey, closed: boolean) {
     const workHours: WorkHoursConfig = {
       ...schedule.workHours,
-      perWeekday: !closed && schedule.workHours.perWeekday[key].length === 0 ? { ...schedule.workHours.perWeekday, [key]: [{ startMinutes: 480, endMinutes: 1200 }] } : schedule.workHours.perWeekday,
+      perWeekday: !closed && schedule.workHours.perWeekday[key].length === 0 ? { ...schedule.workHours.perWeekday, [key]: [{ startMinutes: 600, endMinutes: 1200 }] } : schedule.workHours.perWeekday,
       closedWeekdays: { ...schedule.workHours.closedWeekdays, [key]: closed },
     };
     updateMeta({ workHours });
@@ -301,7 +301,7 @@ export function SettingsTab({ store }: { store: UseScheduleReturn }) {
             blocks={schedule.workHours.holiday}
             onChange={setHolidayWindow}
             closed={schedule.workHours.holiday.length === 0}
-            onToggleClosed={(closed) => setHolidayWindow(closed ? [] : [{ startMinutes: 480, endMinutes: 1200 }])}
+            onToggleClosed={(closed) => setHolidayWindow(closed ? [] : [{ startMinutes: 600, endMinutes: 1200 }])}
           />
         </div>
 

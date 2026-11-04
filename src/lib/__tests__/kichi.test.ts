@@ -12,7 +12,7 @@ it("uses Hamburg holidays, preserves closed Sundays and holidays after normaliza
   for (const date of ["2026-01-06", "2026-06-04", "2026-08-15", "2026-11-01"]) expect(h.has(date)).toBe(false);
   expect(resolveDay(work, "2026-10-31", h).closed).toBe(true);
   expect(resolveDay(work, "2026-10-04", h).closed).toBe(true);
-  expect(resolveDay(work, "2026-10-05", h).window).toEqual({startMinutes:480,endMinutes:1200});
+  expect(resolveDay(work, "2026-10-05", h).window).toEqual({startMinutes:600,endMinutes:1200});
 });
 it("seeds only five paid part-time employees plus the owner", () => {
   const e=STORES[0].sampleEmployees();
@@ -28,7 +28,7 @@ it("schedules within opening hours, counts owner once, covers every lunch with t
   const people=new Map(base.employees.map(e=>[e.id,e]));
   for(const s of shifts){
     expect(resolveDay(base.workHours,s.date,h).closed).toBe(false);
-    expect(s.startMinutes).toBeGreaterThanOrEqual(480);
+    expect(s.startMinutes).toBeGreaterThanOrEqual(600);
     expect(s.endMinutes).toBeLessThanOrEqual(1200);
     expect(people.get(s.employeeId)?.ownerSupport).not.toBe(true);
   }

@@ -16,7 +16,7 @@ const inputClass =
 
 const STATION_VI: Record<Station, string> = { SERVICE: "Kasse / Phụ bếp", KITCHEN: "Bếp", BOTH: "Cả 2 (Kasse / Phụ bếp + Bếp)" };
 
-const FIXED_START_DEFAULT = "08:00";
+const FIXED_START_DEFAULT = "10:00";
 const FIXED_END_DEFAULT = "20:00";
 
 const WEEKDAY_ORDER: WeekdayKey[] = [
@@ -89,7 +89,7 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
     fixedStart: emp?.fixedShift ? minutesToTime(emp.fixedShift.startMinutes) : FIXED_START_DEFAULT,
     fixedEnd: emp?.fixedShift ? minutesToTime(emp.fixedShift.endMinutes) : FIXED_END_DEFAULT,
     limited: !!emp?.shiftWindow,
-    windowStart: minutesToTime(emp?.shiftWindow?.startMinutes ?? 480),
+    windowStart: minutesToTime(emp?.shiftWindow?.startMinutes ?? 600),
     windowEnd: minutesToTime(emp?.shiftWindow?.endMinutes ?? 1200),
     holidayDuty: emp?.requiredOnHolidays ?? false,
     shiftMin: emp?.shiftHours ? hoursText(emp.shiftHours.min) : "",
@@ -165,7 +165,7 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
       d.fixed && fixedEnd > fixedStart
         ? { startMinutes: fixedStart, endMinutes: fixedEnd }
         : undefined,
-    shiftWindow: d.limited ? { startMinutes: safeMinutes(d.windowStart,"08:00"), endMinutes: safeMinutes(d.windowEnd,"20:00") } : undefined,
+    shiftWindow: d.limited ? { startMinutes: safeMinutes(d.windowStart,"10:00"), endMinutes: safeMinutes(d.windowEnd,"20:00") } : undefined,
     availableWeekdays: d.daysOff.length === 0 || available.length === 0 ? undefined : available,
     maxDaysPerWeek: d.maxDays === "" || tage < 1 ? undefined : Math.min(6, Math.round(tage)),
     requiredOnHolidays: d.holidayDuty ? true : undefined,
