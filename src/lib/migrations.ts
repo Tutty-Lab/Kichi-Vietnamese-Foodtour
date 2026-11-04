@@ -7,6 +7,11 @@ export function applyMigrations(storeId: string, schedule: Schedule): Schedule {
       spreadEvenly: e.spreadEvenly ?? true,
     }), migrations: [...(schedule.migrations ?? []), "2026-11-kichi-part-time"] };
   }
+  const rolesId = "2026-11-kichi-soft-roles";
+  if (storeId === "kichi" && !schedule.migrations?.includes(rolesId)) {
+    const days = ["monday","tuesday","wednesday","thursday","friday","saturday"] as const;
+    schedule = { ...schedule, employees: schedule.employees.map(e => e.id === "kc-9" ? { ...e, station: "BOTH" as const, role: "Kasse", preferredWindows: [{ days: [...days], startMinutes: 720, endMinutes: 840 }, { days: [...days], startMinutes: 1080, endMinutes: 1200 }] } : e.id === "kc-10" ? { ...e, station: "BOTH" as const, role: "Aushilfe / Küchenhilfe", preferredWindows: [{ days: [...days], startMinutes: 600, endMinutes: 840 }] } : e), migrations: [...(schedule.migrations ?? []), rolesId] };
+  }
   const id = "2026-11-kichi-opening-10";
   if (storeId !== "kichi" || schedule.migrations?.includes(id)) return schedule;
   return { ...schedule, employees: schedule.employees.map(e => e.ownerSupport ? { ...e, name: "Chủ" } : e),

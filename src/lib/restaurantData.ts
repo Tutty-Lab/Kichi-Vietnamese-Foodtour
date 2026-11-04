@@ -9,8 +9,8 @@ function staff(id: string, name: string, salary: number, station: Employee["stat
 export function kichiEmployees(): Employee[] {
   return [
     staff("kc-6", "Hiep Sy Tran", 470, "KITCHEN", "Koch / Küchenhilfe"),
-    staff("kc-9", "Xuan Trang Nguyen", 500, "BOTH", "Kasse / Küchenhilfe"),
-    staff("kc-10", "Cong Thanh Vu", 300, "BOTH", "Kasse / Küchenhilfe"),
+    { ...staff("kc-9", "Xuan Trang Nguyen", 500, "BOTH", "Kasse"), preferredWindows: [{ days: ["monday","tuesday","wednesday","thursday","friday","saturday"], startMinutes: 720, endMinutes: 840 }, { days: ["monday","tuesday","wednesday","thursday","friday","saturday"], startMinutes: 1080, endMinutes: 1200 }] },
+    { ...staff("kc-10", "Cong Thanh Vu", 300, "BOTH", "Aushilfe / Küchenhilfe"), preferredWindows: [{ days: ["monday","tuesday","wednesday","thursday","friday","saturday"], startMinutes: 600, endMinutes: 840 }] },
     staff("kc-11", "Vinh Hien Nguyen", 1200, "KITCHEN", "Koch / Küchenhilfe"),
     staff("kc-12", "Hong Van Ngo", 800, "KITCHEN", "Koch / Küchenhilfe"),
     restaurantOwner(),

@@ -19,7 +19,7 @@ it("seeds only five paid part-time employees plus the owner", () => {
   expect(e.filter(x=>!x.ownerSupport)).toHaveLength(5);
   expect(e.reduce((n,x)=>n+(x.monthlySalary??0),0)).toBe(3270);
   expect(e.filter(x=>!x.ownerSupport).every(x=>x.employmentType==="TEILZEIT")).toBe(true);
-  expect(e.find(x=>x.id==="kc-9")?.role).toBe("Kasse / Küchenhilfe");
+  expect(e.find(x=>x.id==="kc-9")?.role).toBe("Kasse");
 });
 it("schedules within opening hours, counts owner once, covers every lunch with two people", () => {
   const store=STORES[0], base=initialScheduleFor(store), h=publicHolidays(2026);
@@ -42,3 +42,5 @@ it("schedules within opening hours, counts owner once, covers every lunch with t
     }
   }
 },60000);
+
+
