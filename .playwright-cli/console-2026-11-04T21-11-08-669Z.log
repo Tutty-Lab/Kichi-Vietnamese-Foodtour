@@ -1,6 +1,0 @@
-[    3873ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://127.0.0.1:5186/node_modules/.vite/deps/chunk-BVI7NZOO.js?v=ebc0e3b0:21550
-[    4029ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://www.chromium.org/developers/design-documents/create-amazing-password-forms) %o @ http://127.0.0.1:5186/:0
-[   24428ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:5186/@vite/client:559
-[   24438ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5186/:0
-[   26791ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://127.0.0.1:5186/node_modules/.vite/deps/chunk-BVI7NZOO.js?v=ebc0e3b0:21550
-[   26815ms] [VERBOSE] [DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://www.chromium.org/developers/design-documents/create-amazing-password-forms) %o @ http://127.0.0.1:5186/:0

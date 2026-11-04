@@ -520,4 +520,3 @@ export function StundenzettelTab({
     </div>
   );
 }
-

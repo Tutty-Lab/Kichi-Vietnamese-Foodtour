@@ -1,5 +1,0 @@
-- generic [ref=e4]:
-  - heading "Lịch làm việc & Bảng chấm công" [level=1] [ref=e5]
-  - paragraph [ref=e6]: Nhập mật khẩu để vào ứng dụng.
-  - textbox "Mật khẩu" [active] [ref=e7]
-  - button "Vào ứng dụng" [ref=e8] [cursor=pointer]

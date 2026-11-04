@@ -23,3 +23,7 @@ public/demo-state.json
 /algorithm-audit.json
 /schedule-audit-preview.png
 /Stundenzettel-*-test.pdf
+
+# Browser validation artifacts
+.playwright-cli/
+output/
