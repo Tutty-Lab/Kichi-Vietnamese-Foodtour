@@ -1,4 +1,3 @@
-import { isRequiredCoverage } from "../lib/coveragePolicy";
 import { useMemo, useState } from "react";
 import type { UseScheduleReturn } from "../hooks/useSchedule";
 import type { Shift } from "../types";
@@ -20,7 +19,6 @@ import { weeksOfMonth } from "../lib/weeks";
 import { employmentShortVi } from "../lib/employment";
 import { monthlyTargetMinutesFor, SCHEDULE_SLOT_MINUTES } from "../lib/contract";
 import { StaffingReport } from "./StaffingReport";
-import { ServiceCoverageReport } from "./ServiceCoverageReport";
 import type { PeakCoverage } from "../lib/analyze";
 import { ruleById, staffingRuleId } from "../lib/rules";
 import { checkShifts } from "../lib/shiftChecks";
@@ -155,41 +153,13 @@ export function ScheduleTab({
   }, [store.analysis]);
   const staffingRows = store.storeConfig.staffingRules;
 
-  // Debug wie AnAn: Bếp/Phục vụ je Tag und je Zeitfenster die kleinste Zahl
-  // gleichzeitig Anwesender (Sushi zählt zur Küche, Bar/Quản lý zum Service).
-  const groupStats = useMemo(() => {
-    const holidays = publicHolidays(schedule.year);
-    const ovMap = Object.fromEntries(schedule.dateOverrides.map((o) => [o.date, o]));
-    const groupById = new Map(schedule.employees.map((e) => [e.id, e.station ?? "SERVICE"] as const));
-    const result = new Map<string, { kitchen: number; service: number; flexible: number; windows: Map<string, number | null> }>();
-    for (const d of dates) {
-      const dayShifts = schedule.shifts.filter((s) => s.date === d);
-      const kitchen = new Set(dayShifts.filter((s) => groupById.get(s.employeeId) === "KITCHEN").map((s) => s.employeeId));
-      const service = new Set(dayShifts.filter((s) => groupById.get(s.employeeId) === "SERVICE").map((s) => s.employeeId));
-      const flexible = new Set(dayShifts.filter((s) => groupById.get(s.employeeId) === "BOTH").map((s) => s.employeeId));
-      const windows = new Map<string, number | null>();
-      result.set(d, { kitchen: kitchen.size, service: service.size, flexible: flexible.size, windows });
-      const day = resolveDay(schedule.workHours, d, holidays, ovMap);
-      if (day.closed) continue;
-      for (const w of GROUP_WINDOWS) {
-        let min: number | null = null;
-        for (const block of day.blocks) {
-          for (let t = Math.max(w.from, block.startMinutes); t + 30 <= Math.min(w.to, block.endMinutes); t += 30) {
-            const count = staffAt(dayShifts, new Map(schedule.employees.map(e => [e.id, e])), t).filter(e => (e.station === "KITCHEN" ? "KITCHEN" : "SERVICE") === w.group).length;
-            min = min == null ? count : Math.min(min, count);
-          }
-        }
-        windows.set(w.key, min);
-      }
-    }
-    return result;
-  }, [dates, schedule]);
+  // Bistro debug: chỉ theo dõi tổng số người có mặt, không chia bộ phận cứng.
 
   const hasEmployees = store.activeEmployees.length > 0;
 
   return (
     <section>
-      {schedule.employees.some(e => e.ownerSupport) && <p className="mb-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900">Chủ quán có mặt suốt giờ mở cửa mỗi ngày; hỗ trợ Kasse / Phụ bếp hoặc Bếp, mỗi lúc một vị trí. Không tính vào giờ hợp đồng hay bảng chấm công.</p>}
+      {schedule.employees.some(e => e.ownerSupport) && <p className="mb-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900">Chủ quán có mặt suốt giờ mở cửa mỗi ngày; hỗ trợ chung, không chia bộ phận cứng. Không tính vào giờ hợp đồng hay bảng chấm công.</p>}
       {/* Alles Sichtbare liegt im no-print-Block; beim Drucken bleibt nur der
           Druckbereich ganz unten übrig. */}
       <div className="no-print">
@@ -254,7 +224,6 @@ export function ScheduleTab({
       )}
 
       {mode === "schedule" && schedule.shifts.length > 0 && <StaffingReport analysis={store.analysis} />}
-      {mode === "schedule" && schedule.shifts.length > 0 && <ServiceCoverageReport schedule={schedule} />}
 
       {/* Lỗi kiểm tra */}
       {mode === "schedule" && !validation.valid && schedule.shifts.length > 0 && (
@@ -408,7 +377,7 @@ export function ScheduleTab({
               {schedule.employees.filter(emp => emp.ownerSupport).map(owner => (
                 <tr key={owner.id} className="bg-sky-50 text-sky-900">
                   <td className="sticky left-0 z-10 border-b border-r border-slate-200 bg-sky-50 px-1.5 py-1 font-medium w-[80px] max-w-[80px] truncate"
-                    title={`${owner.name} · Kasse / Phụ bếp/Bếp, mỗi lúc một vị trí · không tính giờ hợp đồng`}>
+                    title={`${owner.name} · hỗ trợ chung · không tính giờ hợp đồng`}>
                     {owner.name}
                   </td>
                   {gridDates.map(date => {
@@ -416,7 +385,7 @@ export function ScheduleTab({
                     const day = resolveDay(schedule.workHours, date, publicHolidays(schedule.year),
                       override ? { [date]: override } : {});
                     return <td key={date} className="border-b border-l border-slate-200 px-0.5 py-1 text-center text-[10px] font-medium whitespace-nowrap"
-                      title={day.closed ? "Quán đóng cửa" : "Chủ có mặt suốt giờ mở; hỗ trợ Kasse / Phụ bếp hoặc Bếp, không tính giờ lương"}>
+                      title={day.closed ? "Quán đóng cửa" : "Chủ có mặt suốt giờ mở; hỗ trợ chung, không tính giờ lương"}>
                       {day.closed ? "–" : day.blocks.map((block, index) => <div key={index}>
                         {shortTime(block.startMinutes)}–{shortTime(block.endMinutes)}
                       </div>)}
@@ -429,9 +398,6 @@ export function ScheduleTab({
             <tfoot>
               <SummaryRow label="Số nhân viên" dates={gridDates} value={(d) => String(dayStats.get(d)!.people.size)} />
               <SummaryRow label="Số ca" dates={gridDates} value={(d) => String(dayStats.get(d)!.shifts)} />
-              <SummaryRow label="Bếp riêng" labelClass="text-orange-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.kitchen)} />
-              <SummaryRow label="Kasse / Phụ bếp riêng" labelClass="text-sky-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.service)} />
-              <SummaryRow label="Cả 2" labelClass="text-violet-700" dates={gridDates} value={(d) => String(groupStats.get(d)!.flexible)} />
               <SummaryRow
                 label="Tổng giờ"
                 dates={gridDates}
@@ -457,17 +423,18 @@ export function ScheduleTab({
                   peaks={(d) => peaksByDay.get(d)?.byLabel.get(rule.label)}
                 />
               ))}
-              {schedule.shifts.length > 0 && GROUP_WINDOWS.map((w) => (
-                <GroupWindowRow
-                  key={w.key}
-                  label={`${w.group === "KITCHEN" ? "Bếp" : "Kasse / Phụ bếp"} ${w.range}`}
-                  title={`${w.group === "KITCHEN" ? "Bếp" : "Kasse / Phụ bếp"} ít nhất có mặt, ${w.title}`}
-                  labelClass={w.group === "KITCHEN" ? "text-orange-700" : "text-sky-700"}
-                  dates={gridDates}
-                  need={w.need}
-                  value={(d) => groupStats.get(d)?.windows.get(w.key) ?? null}
-                />
+              {schedule.shifts.length > 0 && [[600,720],[720,840],[840,1080],[1080,1200]].map(([from,to]) => (
+                <SummaryRow key={from} label={`Có mặt ${from/60}–${to/60}h`} dates={gridDates} value={date => {
+                  const day = resolveDay(schedule.workHours, date, publicHolidays(schedule.year), Object.fromEntries(schedule.dateOverrides.map(o => [o.date,o])));
+                  if(day.closed) return "–";
+                  const shifts = schedule.shifts.filter(sh => sh.date === date);
+                  const employees = new Map(schedule.employees.map(e => [e.id,e]));
+                  const counts: number[] = [];
+                  for(const block of day.blocks) for(let t=Math.max(from,block.startMinutes);t<Math.min(to,block.endMinutes);t+=15) counts.push(staffAt(shifts,employees,t).length);
+                  return counts.length ? String(Math.min(...counts)) : "–";
+                }} />
               ))}
+
             </tfoot>
           </table>
         </div>
@@ -595,61 +562,3 @@ function CoverageRow({
   );
 }
 
-// Khung giờ cho các dòng „ít nhất" Bếp/Kasse / Phụ bếp – theo giờ Lemontaste
-// (11:00–21:30; đông 12–14 và 18–20). Nhãn ngắn, đầy đủ ở tooltip.
-const GROUP_RANGES = [
-  ["open", "10–12", "10:00 – 12:00", 10 * 60, 12 * 60],
-  ["noon", "12–14", "12:00 – 14:00 (giờ đông)", 12 * 60, 14 * 60],
-  ["afternoon", "14–17", "14:00 – 17:00 (ít khách 15–17)", 14 * 60, 17 * 60],
-  ["preparation", "17–18", "17:00 – 18:00 (chuẩn bị giờ đông)", 17 * 60, 18 * 60],
-  ["evening", "18–20", "18:00 – 20:00 (giờ đông)", 18 * 60, 20 * 60],
-] as const;
-const GROUP_WINDOWS = (["KITCHEN", "SERVICE"] as const).flatMap((group) =>
-  GROUP_RANGES.map(([key, range, title, from, to]) => ({
-    key: `${group}-${key}`, range, title, group, from, to,
-    need: isRequiredCoverage(from) ? 1 : 0,
-  })),
-);
-
-/** Dòng „ít nhất x người" của một nhóm trong khung giờ: đỏ khi thiếu so với luật, vàng khi trống. */
-function GroupWindowRow({
-  label,
-  title,
-  labelClass,
-  dates,
-  need,
-  value,
-}: {
-  label: string;
-  title: string;
-  labelClass: string;
-  dates: string[];
-  /** Số người luật yêu cầu; 0 = chỉ để xem, không tô màu. */
-  need: number;
-  value: (d: string) => number | null;
-}) {
-  return (
-    <tr className="bg-slate-50 text-slate-600">
-      <td
-        title={title}
-        className={`sticky left-0 z-10 bg-slate-50 border-t border-r border-slate-200 px-1.5 py-1 font-medium w-[80px] max-w-[80px] text-[10px] leading-tight whitespace-nowrap ${labelClass}`}
-      >
-        {label}
-      </td>
-      {dates.map((d) => {
-        const n = value(d);
-        // Đỏ = thiếu so với luật cứng; vàng = khung không bắt buộc nhưng trống người.
-        const tone = n == null ? "text-slate-300"
-          : n < need ? "bg-rose-50 text-rose-700 font-semibold"
-          : n === 0 ? "bg-amber-50 text-amber-800" : "";
-        return (
-          <td key={d} className={`border-t border-l border-slate-200 px-1 py-1 text-center ${tone}`}>
-            {n === 0 ? "Chủ" : n ?? "–"}
-          </td>
-        );
-      })}
-      <td className="border-t border-l border-slate-200" />
-      <td className="border-t border-l border-slate-200" />
-    </tr>
-  );
-}
