@@ -14,7 +14,7 @@ import { describePreferredWindow, ownShiftRangeMinutes, preferredWindowsOf } fro
 const inputClass =
   "rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base sm:text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500";
 
-const STATION_VI: Record<Station, string> = { SERVICE: "Kasse / Phụ bếp", KITCHEN: "Bếp", BOTH: "Cả 2 (Kasse / Phụ bếp + Bếp)" };
+const ROLE_LABELS: Record<string, string> = { Kasse: "Thu ngân · Kasse", "Aushilfe / Küchenhilfe": "Phụ bếp · Aushilfe", "Koch / Küchenhilfe": "Đầu bếp · Koch/Küche" };
 
 const FIXED_START_DEFAULT = "10:00";
 const FIXED_END_DEFAULT = "20:00";
@@ -39,6 +39,7 @@ type Draft = {
   ownerSupport: boolean;
   employmentType: EmploymentType;
   station: Station;
+  role: string;
   /** Monthly hours as editable text; decimal commas are allowed. */
   hours: string;
   monthlySalary: string;
@@ -78,7 +79,8 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
     name: emp?.name ?? "",
     ownerSupport: emp?.ownerSupport ?? false,
     employmentType: emp?.employmentType ?? "TEILZEIT",
-    station: emp?.station ?? "SERVICE",
+    station: emp?.station ?? "BOTH",
+    role: emp?.role ?? "",
     hours: emp ? hoursText(Math.round(((monthlyMinutes ?? emp.targetMinutes) / 60) * 100) / 100) : "169",
     monthlySalary: emp?.monthlySalary != null ? hoursText(emp.monthlySalary) : "",
     hourlyRate: emp ? (emp.hourlyRate == null ? "" : hoursText(emp.hourlyRate)) : hoursText(DEFAULT_HOURLY_RATE),
@@ -152,7 +154,8 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
     name: d.name.trim() || "Nhân viên mới",
     employmentType: d.employmentType,
     ownerSupport: d.ownerSupport || undefined,
-    station: d.station,
+    station: "BOTH",
+    role: d.role || undefined,
     quotaSource: "hours",
     unavailableRanges: d.unavailableRanges.filter(range => range.startDate && range.endDate && range.startDate <= range.endDate),
     targetMinutes: d.ownerSupport ? 0 : Math.round(hours * 60),
@@ -341,7 +344,7 @@ function EmployeeSummaryRow({
             emp.station === "KITCHEN" ? "bg-orange-50 text-orange-800" : "bg-sky-50 text-sky-800"
           }`}
         >
-          {STATION_VI[emp.station ?? "SERVICE"]}
+          {emp.ownerSupport ? "Chủ" : ROLE_LABELS[emp.role ?? ""] ?? "Chưa chọn vai trò"}
         </span>
       </div>
       <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
@@ -351,7 +354,7 @@ function EmployeeSummaryRow({
             : `${String(Math.round((emp.targetMinutes / 60) * 100) / 100).replace(".", ",")}h/tháng`}{" "}
           {emp.weeklyHours != null && monatH > 0 ? ` · tháng này ${minutesToShortHours(monatMin)}` : ""}
         </span>
-        {emp.role && <span>{emp.role}</span>}
+
         {emp.monthlySalary != null && <span>{emp.monthlySalary.toLocaleString("vi-VN")} € / {emp.hourlyRate} €/h</span>}
         {emp.referenceDays != null && <span>09/2026: {emp.referenceDays} ngày tham khảo</span>}
         {sharedWith.length > 0 ? (
@@ -620,16 +623,14 @@ function EmployeeSheet({
               />
             </div>
             <div>
-              <FieldLabel>Bộ phận</FieldLabel>
-              <Segmented<Station>
-                value={d.station}
-                onChange={(v) => set("station", v)}
-                options={[
-                  { value: "SERVICE", label: "Kasse / Phụ bếp" },
-                  { value: "KITCHEN", label: "Bếp" },
-                  { value: "BOTH", label: "Cả 2 (Kasse / Phụ bếp + Bếp)" },
-                ]}
-              />
+              <FieldLabel>Bộ phận chính (ưu tiên mềm)</FieldLabel>
+              <select aria-label="Bộ phận chính" className={`${inputClass} w-full`} value={d.role} onChange={e => set("role", e.target.value)}>
+                <option value="">Chưa chọn</option>
+                <option value="Aushilfe / Küchenhilfe">Phụ bếp · Aushilfe</option>
+                <option value="Kasse">Thu ngân · Kasse</option>
+                <option value="Koch / Küchenhilfe">Đầu bếp · Koch/Küche</option>
+              </select>
+              <p className="mt-1 text-xs text-slate-500">Vai trò chính để ưu tiên xếp ca; vẫn hỗ trợ vị trí khác. Khung giờ ưu tiên chỉnh ở phần nâng cao.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <label className="block min-w-0">
