@@ -45,6 +45,7 @@ export type Employee = {
   monthlySalary?: number;
   quotaSource?: "hours" | "salary";
   hourlyRate?: number;
+  salaryInput?: "monthly" | "hourly";
   role?: string;
   referenceDays?: number;
   referenceEstimated?: boolean;
@@ -146,6 +147,8 @@ export type Shift = {
 };
 
 export type Schedule = {
+  savedAt?: string;
+  pdfExports?: { kind: "timesheet" | "schedule"; from: string; to: string; exportedAt: string; fingerprint?: string }[];
   companyName: string;
   /** Anschrift des Betriebs (erscheint auf dem Stundenzettel). */
   address: string;

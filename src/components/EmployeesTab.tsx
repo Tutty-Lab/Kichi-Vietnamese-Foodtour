@@ -40,6 +40,7 @@ type Draft = {
   employmentType: EmploymentType;
   station: Station;
   role: string;
+  salaryInput: "monthly" | "hourly";
   /** Monthly hours as editable text; decimal commas are allowed. */
   hours: string;
   monthlySalary: string;
@@ -81,6 +82,7 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
     employmentType: emp?.employmentType ?? "TEILZEIT",
     station: emp?.station ?? "BOTH",
     role: emp?.role ?? "",
+    salaryInput: emp?.salaryInput ?? (emp?.monthlySalary != null ? "monthly" : "hourly"),
     hours: emp ? hoursText(Math.round(((monthlyMinutes ?? emp.targetMinutes) / 60) * 100) / 100) : "169",
     monthlySalary: emp?.monthlySalary != null ? hoursText(emp.monthlySalary) : "",
     hourlyRate: emp ? (emp.hourlyRate == null ? "" : hoursText(emp.hourlyRate)) : hoursText(DEFAULT_HOURLY_RATE),
@@ -156,6 +158,7 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
     ownerSupport: d.ownerSupport || undefined,
     station: "BOTH",
     role: d.role || undefined,
+    salaryInput: d.salaryInput,
     quotaSource: "hours",
     unavailableRanges: d.unavailableRanges.filter(range => range.startDate && range.endDate && range.startDate <= range.endDate),
     targetMinutes: d.ownerSupport ? 0 : Math.round(hours * 60),
@@ -634,12 +637,15 @@ function EmployeeSheet({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <label className="block min-w-0">
-                <FieldLabel>Lương tháng (€)</FieldLabel>
-                <HoursInput value={d.monthlySalary} onChange={v => set("monthlySalary", v)} placeholder="VD 2500" unit="€" />
+                <FieldLabel>Loại lương</FieldLabel>
+                <select aria-label="Loại lương" className={`${inputClass} w-full`} value={d.salaryInput} onChange={e => set("salaryInput", e.target.value as "monthly" | "hourly")}>
+                  <option value="monthly">Lương theo tháng</option>
+                  <option value="hourly">Lương theo giờ</option>
+                </select>
               </label>
               <label className="block min-w-0">
-                <FieldLabel>Lương giờ (€/h)</FieldLabel>
-                <HoursInput value={d.hourlyRate} onChange={v => set("hourlyRate", v)} placeholder="13,90" unit="€/h" />
+                <FieldLabel>{d.salaryInput === "monthly" ? "Lương tháng (€)" : "Lương giờ (€/h)"}</FieldLabel>
+                <HoursInput value={d.salaryInput === "monthly" ? d.monthlySalary : d.hourlyRate} onChange={v => set(d.salaryInput === "monthly" ? "monthlySalary" : "hourlyRate", v)} placeholder={d.salaryInput === "monthly" ? "VD 1700" : "13,90"} unit={d.salaryInput === "monthly" ? "€" : "€/h"} />
               </label>
             </div>
             {d.ownerSupport && <p className="text-sm text-slate-600">Chủ quán hỗ trợ suốt giờ mở cửa mỗi ngày, mỗi lúc một vị trí Kasse / Phụ bếp hoặc Bếp. Không tính giờ hợp đồng.</p>}

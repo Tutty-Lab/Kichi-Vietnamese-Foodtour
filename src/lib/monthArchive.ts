@@ -58,6 +58,7 @@ export function switchMonth(
       year,
       month,
       shifts: saved?.shifts ?? [],
+      savedAt: saved?.savedAt ?? savedAt,
       lockedAt: saved?.lockedAt,
       printedWeeks: saved?.printedWeeks ?? [],
       underQuotaAccepted: saved?.underQuotaAccepted,
@@ -99,6 +100,7 @@ export function listSavedMonths(schedule: Schedule): SavedMonth[] {
       shiftCount: schedule.shifts.length,
       totalMinutes: total(schedule.shifts),
       current: true,
+      savedAt: schedule.savedAt,
     });
   }
   return list.sort((a, b) => a.key.localeCompare(b.key));

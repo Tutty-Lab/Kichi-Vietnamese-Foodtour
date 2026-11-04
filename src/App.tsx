@@ -1,3 +1,4 @@
+import { PdfExportWarning } from "./components/PdfExportWarning";
 import { useEffect, useState } from "react";
 import { useSchedule } from "./hooks/useSchedule";
 import { SettingsTab } from "./components/SettingsTab";
@@ -446,6 +447,7 @@ function MainApp() {
           </div>
         ) : (
           <>
+            <PdfExportWarning schedule={view.schedule} />
             <div className="no-print space-y-6">
               {tab === "einstellungen" && <SettingsTab key={view.storeId} store={view} />}
               {tab === "mitarbeiter" && <EmployeesTab key={view.storeId} store={view} allStores={stores} />}

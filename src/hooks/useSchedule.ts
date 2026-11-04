@@ -70,6 +70,8 @@ function normalizeSchedule(raw: Schedule | undefined, store: StoreConfig): Sched
     year: raw.year ?? base.year,
     month: raw.month ?? base.month,
     workHours: normalizeWorkHours(raw.workHours ?? store.workHours),
+    pdfExports: Array.isArray(raw.pdfExports) ? raw.pdfExports : [],
+    savedAt: raw.savedAt ?? new Date().toISOString(),
     dateOverrides: Array.isArray(raw.dateOverrides) ? raw.dateOverrides : [],
     employees: withSharedPersonDefaults(raw.employees ?? [], store),
     shifts: raw.shifts ?? [],
@@ -278,6 +280,7 @@ export function useSchedule(storeId: string) {
     const next = switchMonth(s, original, nextYear, nextMonth);
     const schedulePatched = { ...next.schedule, ...patch };
     latest.current = { ...latest.current, schedule: schedulePatched, originalShifts: next.originalShifts };
+    saveState(storeId, latest.current);
     setSchedule(schedulePatched);
     setOriginalShifts(next.originalShifts);
     setGenError(null);
@@ -298,6 +301,12 @@ export function useSchedule(storeId: string) {
       setRemoteStatus("error");
     }
   }, [storeId]);
+
+  const recordPdfExport = useCallback((kind: "timesheet" | "schedule", dates: string[], fingerprint?: string) => {
+    if (!dates.length) return;
+    const sorted = [...dates].sort();
+    updateMeta({ pdfExports: [...(latest.current.schedule.pdfExports ?? []), { kind, from: sorted[0], to: sorted[sorted.length - 1], exportedAt: new Date().toISOString(), fingerprint }] });
+  }, [updateMeta]);
 
   /** Passwort der Filiale ändern. Gibt eine Meldung zurück oder null bei Erfolg. */
   const changePassword = useCallback(
@@ -547,6 +556,7 @@ export function useSchedule(storeId: string) {
   }, []);
 
   return {
+    recordPdfExport,
     storeId,
     storeConfig,
     schedule,
