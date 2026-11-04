@@ -3,8 +3,8 @@ import type { Employee } from "../types";
 // PDF 10/2026 chỉ ghi Brutto, không ghi số giờ. 13,90 €/h là giả định cần xác nhận.
 const RATE = 13.90;
 function staff(id: string, name: string, salary: number, station: Employee["station"], role: string): Employee {
-  return { id, name, employmentType: salary <= 603 ? "MINIJOB" : "TEILZEIT", station, role,
-    monthlySalary: salary, hourlyRate: RATE, quotaSource: "salary", targetMinutes: Math.round(salary / RATE * 60), referenceEstimated: true };
+  return { id, name, employmentType: "TEILZEIT", station, role,
+    monthlySalary: salary, hourlyRate: RATE, quotaSource: "salary", targetMinutes: Math.round(salary / RATE * 60), referenceEstimated: true, shiftHours: salary <= 603 ? { min: 2, max: 4 } : { min: 4, max: 6 }, spreadEvenly: true };
 }
 export function kichiEmployees(): Employee[] {
   return [

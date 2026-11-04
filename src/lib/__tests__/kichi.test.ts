@@ -18,7 +18,7 @@ it("seeds only five paid part-time employees plus the owner", () => {
   const e=STORES[0].sampleEmployees();
   expect(e.filter(x=>!x.ownerSupport)).toHaveLength(5);
   expect(e.reduce((n,x)=>n+(x.monthlySalary??0),0)).toBe(3270);
-  expect(e.filter(x=>!x.ownerSupport).every(x=>x.employmentType!=="VOLLZEIT")).toBe(true);
+  expect(e.filter(x=>!x.ownerSupport).every(x=>x.employmentType==="TEILZEIT")).toBe(true);
   expect(e.find(x=>x.id==="kc-9")?.role).toBe("Kasse / Küchenhilfe");
 });
 it("schedules within opening hours, counts owner once, covers every lunch with two people", () => {

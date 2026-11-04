@@ -77,7 +77,7 @@ export function draftFrom(emp?: Employee, partners: PartnerChoice = {}, monthlyM
   return {
     name: emp?.name ?? "",
     ownerSupport: emp?.ownerSupport ?? false,
-    employmentType: emp?.employmentType ?? "VOLLZEIT",
+    employmentType: emp?.employmentType ?? "TEILZEIT",
     station: emp?.station ?? "SERVICE",
     hours: emp ? hoursText(Math.round(((monthlyMinutes ?? emp.targetMinutes) / 60) * 100) / 100) : "169",
     monthlySalary: emp?.monthlySalary != null ? hoursText(emp.monthlySalary) : "",
