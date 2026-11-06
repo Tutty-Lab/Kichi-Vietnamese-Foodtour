@@ -148,6 +148,10 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
   const hours = Math.max(0, parseHours(d.hours) || 0);
   const amount = parseHours(d.monthlySalary);
   const rate = parseHours(d.hourlyRate);
+  const salaryHours = Number.isFinite(amount) && amount >= 0 && Number.isFinite(rate) && rate > 0
+    ? amount / rate
+    : 0;
+  const usesSalaryQuota = d.salaryInput === "monthly";
   const tage = Number(d.maxDays);
   const fixedStart = safeMinutes(d.fixedStart, FIXED_START_DEFAULT);
   const fixedEnd = safeMinutes(d.fixedEnd, FIXED_END_DEFAULT);
@@ -159,9 +163,9 @@ export function draftToEmployee(d: Draft): Omit<Employee, "id"> {
     station: "BOTH",
     role: d.role || undefined,
     salaryInput: d.salaryInput,
-    quotaSource: "hours",
+    quotaSource: usesSalaryQuota ? "salary" : "hours",
     unavailableRanges: d.unavailableRanges.filter(range => range.startDate && range.endDate && range.startDate <= range.endDate),
-    targetMinutes: d.ownerSupport ? 0 : Math.round(hours * 60),
+    targetMinutes: d.ownerSupport ? 0 : Math.round((usesSalaryQuota ? salaryHours : hours) * 60),
     monthlySalary: Number.isFinite(amount) && amount >= 0 && d.monthlySalary.trim() !== "" ? amount : undefined,
     hourlyRate: Number.isFinite(rate) && rate > 0 ? rate : undefined,
     weeklyHours: undefined,
@@ -568,7 +572,10 @@ function EmployeeSheet({
   const allDaysOff = d.daysOff.length === 7;
   const preferencesBad = d.windows.some(w => w.days.length === 0 || !w.start || !w.end || w.end <= w.start);
   const periodBad = Boolean(d.startDate && d.endDate && d.endDate < d.startDate);
-  const hoursBad = !d.hours.trim() || !Number.isFinite(parseHours(d.hours)) || parseHours(d.hours)<0;
+  const salaryBad = d.salaryInput === "monthly"
+    ? !d.monthlySalary.trim() || !Number.isFinite(parseHours(d.monthlySalary)) || parseHours(d.monthlySalary) < 0 || !Number.isFinite(parseHours(d.hourlyRate)) || parseHours(d.hourlyRate) <= 0
+    : false;
+  const hoursBad = d.salaryInput === "hourly" && (!d.hours.trim() || !Number.isFinite(parseHours(d.hours)) || parseHours(d.hours)<0);
   const windowBad = d.limited && (!d.windowStart || !d.windowEnd || d.windowEnd <= d.windowStart);
   const shiftMinH = parseHours(d.shiftMin);
   const shiftMaxH = parseHours(d.shiftMax);
@@ -650,8 +657,9 @@ function EmployeeSheet({
             </div>
             {d.ownerSupport && <p className="text-sm text-slate-600">Chủ quán hỗ trợ suốt giờ mở cửa mỗi ngày, mỗi lúc một vị trí Kasse / Phụ bếp hoặc Bếp. Không tính giờ hợp đồng.</p>}
             <label className="block">
-              <FieldLabel>Giờ / tháng</FieldLabel>
-              <HoursInput value={d.hours} onChange={v => set("hours", v)} placeholder="VD 169" />
+              <FieldLabel>{d.salaryInput === "monthly" ? "Mức quy đổi (€/giờ)" : "Giờ / tháng"}</FieldLabel>
+              <HoursInput value={d.salaryInput === "monthly" ? d.hourlyRate : d.hours} onChange={v => set(d.salaryInput === "monthly" ? "hourlyRate" : "hours", v)} placeholder={d.salaryInput === "monthly" ? "VD 15" : "VD 169"} />
+              {d.salaryInput === "monthly" && <p className="mt-1 text-xs text-slate-600">{salaryBad ? "Nhập lương tháng từ 0 và mức quy đổi lớn hơn 0." : `Giờ / tháng = ${d.monthlySalary} € ÷ ${d.hourlyRate} €/giờ = ${(parseHours(d.monthlySalary) / parseHours(d.hourlyRate)).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} giờ. Định mức tự cập nhật theo lương.`}</p>}
               {hoursBad && <p role="alert" className="mt-1 text-xs text-rose-600">Giờ phải là số từ 0 trở lên.</p>}
             </label>
           </SheetSection>
@@ -969,7 +977,7 @@ function EmployeeSheet({
               </button>
               <button
                 onClick={() => onSave(draftToEmployee(d), d.partners)}
-                disabled={d.name.trim().length === 0 || hoursBad || windowBad || fixedBad || shiftRangeOff || allDaysOff || preferencesBad || periodBad || d.unavailableRanges.some(range => Boolean(range.startDate || range.endDate) && (!range.startDate || !range.endDate || range.startDate > range.endDate))}
+                disabled={d.name.trim().length === 0 || hoursBad || salaryBad || windowBad || fixedBad || shiftRangeOff || allDaysOff || preferencesBad || periodBad || d.unavailableRanges.some(range => Boolean(range.startDate || range.endDate) && (!range.startDate || !range.endDate || range.startDate > range.endDate))}
                 className="rounded-lg bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-40"
               >
                 Lưu

@@ -19,6 +19,7 @@
 // ============================================================================
 
 import type { Employee } from "../types";
+import { salaryToMinutes } from "./payroll";
 import { DAY_WEIGHTS, parseIsoDate, weekdayKeyOf, type WeekdayKey } from "./demand";
 import { weekStartOf } from "./weeks";
 import { isEmployedOn } from "./availability";
@@ -49,6 +50,14 @@ export function contractOpenDays(openDaysByWeek: readonly number[]): number {
 export function monthlyTargetMinutes(emp: Employee, openDaysInMonth: number): number {
   if (emp.weeklyHours != null) {
     return Math.max(0, Math.round((emp.weeklyHours * 60 * openDaysInMonth) / OPEN_DAYS_PER_WEEK));
+  }
+  return salaryQuotaMinutes(emp);
+}
+
+function salaryQuotaMinutes(emp: Employee): number {
+  if (emp.ownerSupport) return 0;
+  if (emp.quotaSource === "salary" && emp.monthlySalary != null && emp.monthlySalary >= 0 && emp.hourlyRate != null && emp.hourlyRate > 0) {
+    return salaryToMinutes(emp.monthlySalary, emp.hourlyRate);
   }
   return emp.targetMinutes;
 }
@@ -128,7 +137,7 @@ function weekPartMinutes(weeklyMinutes: number, week: WeekShare): number {
  */
 /** Monthly contracts keep their full quota across the eligible part of a month. */
 function monthlyQuota(emp: Employee, openDates: readonly string[]): number {
-  return openDates.length === 0 || openDates.some(date => isEmployedOn(emp, date)) ? emp.targetMinutes : 0;
+  return openDates.length === 0 || openDates.some(date => isEmployedOn(emp, date)) ? salaryQuotaMinutes(emp) : 0;
 }
 
 export function monthlyTargetMinutesFor(
